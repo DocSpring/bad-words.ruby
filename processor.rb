@@ -107,8 +107,7 @@ class BadWords
           length = find_partial(partial, string[index..-1])
           if length
             get_translations(partial).map do |translation|
-              translation[:length] = length
-              translation
+              translation.merge :length => length
             end
           end
         end.reject(&:nil?).inject([]) do |sum, translations|
