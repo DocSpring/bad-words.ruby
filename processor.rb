@@ -13,22 +13,38 @@ class BadWords
       5
     end
 
+    def get_word(text, index, skip)
+      word_begin = text.rindex ' ', index
+      word_end = text.index ' ', (index + skip)
+      text[word_begin+1..word_end-1]
+    end
+
     def find(string)
       time = Time.now
       string = string.downcase
       (0..string.length).each do |i|
         # puts string[i..-1]
-        if process(string[i..-1], library)
+        input = string[i..-1]
+        found = process(input, library)
+
+        if found
+          puts "Found bad combination #{input[0..found.length]} looks like #{found.text}"
+          word = get_word(string, i, found.length)
+          white_word = check_whitelist(word)
           puts "#{Time.now - time}"
-          return true
+          if white_word
+            puts "Found good word #{white_word}"
+            nil
+          else
+            {:text => input[0..found.length], :word => found.text}
+          end
         end
       end
-      false
+      nil
     end
 
     def process(string, library)
       unless library.find(string).values.empty?
-        puts string
         return true
       end
       passed = []
@@ -42,7 +58,7 @@ class BadWords
           passed << state
           new_states.each do |new_state|
             if new_state.success?
-              return true
+              return new_state
             end
           end
           #puts 'good' + new_states.map(&:text).inspect
@@ -53,7 +69,7 @@ class BadWords
           bad_states << state
         end
       end
-      false
+      nil
     end
 
     def push_states(queue, states)
@@ -110,8 +126,8 @@ class BadWords
               translation.merge :length => length
             end
           end
-        end.reject(&:nil?).inject([]) do |sum, translations|
-          sum + translations
+        end.reject(&:nil?).inject([]) do |sum, tr|
+          sum + tr
         end)
       end
     end
@@ -163,6 +179,10 @@ class BadWords
       end
     end
 
+    def check_whitelist(word)
+      @whitelist.index word
+    end
+
     def generate_data
       yaml = YAML.load_file("rules.yaml")
       @translations = Hash[yaml.map do |key, rule|
@@ -181,11 +201,12 @@ class BadWords
         end
         [key, rule]
       end]
-      library_data = JSON.parse(File.read('library.json'))["words"] # YAML.load_file 'library.yaml'
+      library_data = YAML.load_file('library.yaml')
       @library = Trie.new
       library_data.each do |item|
         @library.insert item, item
       end
+      @whitelist = YAML.load_file('whitelist.yaml')
     end
 
     def translations
