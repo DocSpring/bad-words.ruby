@@ -1,0 +1,37 @@
+1:
+  -
+    symbol: f
+    weight: 2
+  -
+    symbol: f
+    weight: 3
+ph:
+  -
+    symbol: f
+    weight: 2
+  -
+    symbol: h
+    weight: 1
+pf:
+  -
+    symbol: f
+    weight: 1
+u:
+  -
+    symbol: v
+    weight: 1
+
+"|_|":
+  -
+    symbol: u
+    weight: 2
+
+v:
+  -
+    symbol: u
+    weight: 2
+
+".":
+  -
+    symbol: ""
+    weight: 1

@@ -1,0 +1,2 @@
+gem 'trie'
+gem 'json'

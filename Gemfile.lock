@@ -1,0 +1,11 @@
+GEM
+  specs:
+    json (1.7.3)
+    trie (0.0.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  json
+  trie
