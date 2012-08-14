@@ -1,5 +1,3 @@
-require "./processor"
-
-BadWords.generate_data
+require "./bad_words"
 
 puts BadWords.find(ARGV[0])

@@ -1,11 +1,12 @@
 GEM
+  remote: https://rubygems.org/
   specs:
-    json (1.7.3)
+    ruby-prof (0.11.2)
     trie (0.0.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  json
+  ruby-prof
   trie

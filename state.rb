@@ -36,23 +36,23 @@ class State
   end
 
   def failure?
-    @library.empty?
+    not @library
   end
 
   def success?
-    success = @library.values.index(@text)
+    success = @library.value
     puts @text if success
     success
   end
 
-  def hash
-    [@path, @library].hash
+  def ==(sec)
+    self.text == sec.text && self.length == sec.length && self.weight == sec.weight && self.library == sec.library
   end
 
   class <<self
     def get_library(symbol, library)
       symbol = symbol || ""
-      library.find_prefix symbol
+      library[symbol]
     end
   end
 end

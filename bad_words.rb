@@ -1,21 +1,20 @@
 require "yaml"
-require "json"
-require "trie"
 require "./state"
+require "./prefix_tree"
 
 class BadWords
   class << self
     @translations = {}
     @partials = {}
-    @library = []
+    @library = PrefixTree.new
 
     def deep
       5
     end
 
     def get_word(text, index, skip)
-      word_begin = text.rindex ' ', index
-      word_end = text.index ' ', (index + skip)
+      word_begin = text.rindex(' ', index) || 0
+      word_end = text.index(' ', (index + skip)) || text.length
       text[word_begin+1..word_end-1]
     end
 
@@ -26,26 +25,28 @@ class BadWords
         # puts string[i..-1]
         input = string[i..-1]
         found = process(input, library)
-
         if found
-          puts "Found bad combination #{input[0..found.length]} looks like #{found.text}"
-          word = get_word(string, i, found.length)
-          white_word = check_whitelist(word)
           puts "#{Time.now - time}"
+          text, length = found
+          puts "Found bad combination #{input[0..length]} looks like #{text}"
+          word = get_word(string, i, length)
+          white_word = check_whitelist(word)
           if white_word
             puts "Found good word #{white_word}"
             nil
           else
-            {:text => input[0..found.length], :word => found.text}
+            {:text => input[0..length], :word => text, :index => i}
           end
         end
       end
+      puts "#{Time.now - time}"
       nil
     end
 
     def process(string, library)
-      unless library.find(string).values.empty?
-        return true
+      plain = library[string]
+      if plain && plain.value
+        return plain.value, plain.value.length
       end
       passed = []
       bad_states = []
@@ -58,7 +59,7 @@ class BadWords
           passed << state
           new_states.each do |new_state|
             if new_state.success?
-              return new_state
+              return new_state.text, new_state.length
             end
           end
           #puts 'good' + new_states.map(&:text).inspect
@@ -109,16 +110,17 @@ class BadWords
     def append_path(symbols, state)
       symbols.map do |sym|
         new_state = state.append sym
-        new_state unless new_state.library.empty?
-      end.reject(&:nil?)
+      end.reject do |state|
+        state.failure?
+      end
     end
 
     def get_next_symbols(index, string)
       char = string[index]
       if char
+        char = char.to_s
         translations = get_translations(char) || []
         partials = get_partials(char) || []
-
         translations + (partials.map do |partial|
           length = find_partial(partial, string[index..-1])
           if length
@@ -158,7 +160,7 @@ class BadWords
     end
 
     def get_translations(char)
-      tr = (translations[char] || (char.length == 1 ? [{:symbol => char, :length => 1, :weight => 5, :char => char}] : nil)).clone
+      tr = (translations[char] || (char.length == 1 ? [{:symbol => char, :length => 1, :weight => 5, :char => char}] : []))
       if tr.none? { |item| item[:symbol] == '' }
         tr << {:symbol => '', :length => 1, :weight => 0.3, :char => char}
       end
@@ -202,10 +204,10 @@ class BadWords
         [key, rule]
       end]
       library_data = YAML.load_file('library.yaml')
-      @library = Trie.new
-      library_data.each do |item|
-        @library.insert item, item
-      end
+      @library = PrefixTree.new library_data
+      #library_data.each do |item|
+      #  @library.insert item, item
+      #end
       @whitelist = YAML.load_file('whitelist.yaml')
     end
 
@@ -218,7 +220,9 @@ class BadWords
     end
 
     def library
-      @library || {}
+      @library || PrefixTree.new
     end
   end
 end
+
+BadWords.generate_data()

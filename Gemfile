@@ -1,2 +1,3 @@
-gem 'trie'
-gem 'json'
+source 'https://rubygems.org'
+
+gem 'ruby-prof'
