@@ -1,6 +1,7 @@
 require "yaml"
-require "./state"
-require "./prefix_tree"
+require "bad_words/state"
+require "bad_words/prefix_tree"
+require "bad_words/version"
 
 class BadWords
   attr_accessor :return_white, :translations, :partials, :library, :whitelist
@@ -23,7 +24,6 @@ class BadWords
       input = string[i..-1]
       found = process(input, library)
       if found
-        puts "#{Time.now - time}"
         text, length = found
         puts "Found bad combination #{input[0..length]} looks like #{text}"
 

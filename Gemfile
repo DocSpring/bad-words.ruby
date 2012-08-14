@@ -1,3 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'ruby-prof'
+# Specify your gem's dependencies in bad_words.gemspec
+gemspec
