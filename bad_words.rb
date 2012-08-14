@@ -57,15 +57,14 @@ class BadWords
 
       if new_states
         passed << state
-        new_states.each do |new_state|
-          if new_state.success?
-            return new_state.text, new_state.length
-          end
+        success_index = new_states.index(&:success?)
+        if success_index
+          new_state = new_states[success_index]
+          return new_state.text, new_state.length
+        else
+          states = (new_states - bad_states) - passed
+          push_states queue, states
         end
-        #puts 'good' + new_states.map(&:text).inspect
-        #puts 'bad' + bad_states.map(&:text).inspect
-        states = (new_states - bad_states) - passed
-        push_states queue, states
       else
         bad_states << state
       end
