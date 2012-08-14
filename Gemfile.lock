@@ -2,11 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     ruby-prof (0.11.2)
-    trie (0.0.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   ruby-prof
-  trie
