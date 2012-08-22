@@ -11,7 +11,7 @@ class BadWords
   end
 
   def get_word(text, index, skip)
-    word_begin = text.rindex(' ', index) || 0
+    word_begin = text.rindex(' ', index) || -1
     word_end = text.index(' ', (index + skip)) || text.length
     text[word_begin+1..word_end-1].gsub(/[^0-9a-z ]/i, '')
   end
@@ -25,21 +25,17 @@ class BadWords
       found = process(input, library)
       if found
         text, length = found
-        puts "Found bad combination #{input[0..length]} looks like #{text}"
-
         word = get_word(string, i, length)
-        puts word
         if check_whitelist(word)
           puts "Found good words for #{word}"
           if return_white
-            {:text => input[0..length], :word => text, :index => i, :white => word}
+            return {:text => input[0..length], :word => text, :index => i, :white => word, :time => Time.now - time}
           end
         else
-          {:text => input[0..length], :word => text, :index => i}
+          return {:text => input[0..length], :word => text, :index => i, :time => Time.now - time}
         end
       end
     end
-    puts "#{Time.now - time}"
     nil
   end
 
@@ -54,7 +50,6 @@ class BadWords
     until queue.empty?
       state = queue.shift
       new_states = get_new_states state, string
-
       if new_states
         passed << state
         success_index = new_states.index(&:success?)
@@ -186,10 +181,12 @@ class BadWords
     end
   end
 
-  def initialize
+  def initialize(whitelist = nil)
+    time = Time.now
+    puts "Init rules"
     self.return_white=false
-
-    yaml = YAML.load_file("rules.yaml")
+    confdir = File.expand_path(File.dirname(__FILE__) + "/conf")
+    yaml = YAML.load_file("#{confdir}/rules.yaml")
     self.translations = Hash[yaml.map do |key, rule|
       key = key.to_s
       rule = rule.concat([{"symbol" => key, "weight" => 3}]).map do |item|
@@ -206,10 +203,12 @@ class BadWords
       end
       [key, rule]
     end]
-
-    library_data = YAML.load_file('library.yaml')
+    puts "Init library"
+    library_data = YAML.load_file("#{confdir}/library.yaml")
     self.library = PrefixTree.new library_data
-    self.whitelist = YAML.load_file('whitelist.yaml')
+    puts "Init whitelist"
+    self.whitelist = whitelist || YAML.load_file("#{confdir}/whitelist.yaml")
+    puts "Time: #{Time.now - time}"
   end
 end
 

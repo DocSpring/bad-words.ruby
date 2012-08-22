@@ -1,3 +1,13 @@
-require "./bad_words"
+#!/usr/bin/env ruby
 
-puts BadWords.find(ARGV[0])
+$LOAD_PATH << "#{File.expand_path(File.dirname(__FILE__))}/../lib"
+
+require 'bad_words'
+
+string = ARGV[0]
+
+if string
+    puts BadWords.new().find(ARGV[0])
+else    
+    puts 'Specify input string'
+end
