@@ -39,3 +39,7 @@ v:
   -
     symbol: ""
     weight: 1
+"#":
+  -
+    symbol: "s"
+    weight: 2

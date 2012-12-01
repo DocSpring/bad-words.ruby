@@ -1,4 +1,5 @@
 class State
+  attr_reader :library, :text, :length, :weight
 
   def initialize(path, lib)
     @library = lib
@@ -15,22 +16,6 @@ class State
     end
   end
 
-  def library
-    @library
-  end
-
-  def text
-    @text
-  end
-
-  def length
-    @length
-  end
-
-  def weight
-    @weight
-  end
-
   def append(item)
     State.new @path + [item], State.get_library(item ? item[:symbol] : '', @library)
   end
@@ -40,9 +25,7 @@ class State
   end
 
   def success?
-    success = @library.value
-    puts @text if success
-    success
+    @library.value
   end
 
   def ==(sec)

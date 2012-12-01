@@ -1,10 +1,15 @@
 require "yaml"
+require "set"
 require "bad_words/state"
 require "bad_words/prefix_tree"
 require "bad_words/version"
 
 class BadWords
-  attr_accessor :return_white, :translations, :partials, :library, :whitelist
+  attr_reader :translations,
+              :partials,
+              :library,
+              :whitelist,
+              :return_white
 
   def deep
     5
@@ -19,21 +24,35 @@ class BadWords
   def find(string)
     time = Time.now
     string = string.downcase
-    (0..string.length).each do |i|
-      # puts string[i..-1]
-      input = string[i..-1]
-      found = process(input, library)
-      if found
-        text, length = found
-        word = get_word(string, i, length)
-        if check_whitelist(word)
-          puts "Found good words for #{word}"
-          if return_white
-            return {:text => input[0..length], :word => text, :index => i, :white => word, :time => Time.now - time}
+
+    length = string.length
+    thread_count = 4
+    i = 0
+    #trying to add multithreading. Left for the better times
+    while i < length
+      strings = Hash[(0..thread_count).map { |j|
+        [i+j, string[i+j..-1]]
+      }]
+      found = strings.map do |index, input|
+        found = process(input, library)
+        if found
+          text, length = found
+          word = get_word(string, index, length)
+          if check_whitelist(word)
+            puts "Found good words for #{word}"
+            if return_white
+              {:text => input[0..length], :word => text, :index => index, :white => word, :time => Time.now - time}
+            end
+          else
+            {:text => input[0..length], :word => text, :index => index, :time => Time.now - time}
           end
-        else
-          return {:text => input[0..length], :word => text, :index => i, :time => Time.now - time}
         end
+      end.reject do |res|
+        res.nil? or !!res[:white]
+      end
+      i += thread_count
+      if found.any?
+        return found[0]
       end
     end
     nil
@@ -102,6 +121,7 @@ class BadWords
   end
 
   def append_path(symbols, state)
+
     symbols.map do |sym|
       new_state = state.append sym
     end.reject do |state|
@@ -158,7 +178,7 @@ class BadWords
     if tr.none? { |item| item[:symbol] == '' }
       tr << {:symbol => '', :length => 1, :weight => 0.2, :char => char}
     end
-    tr
+    tr.clone
   end
 
   def get_partials(char)
@@ -177,24 +197,24 @@ class BadWords
 
   def check_whitelist(words)
     words.split(' ').all? do |word|
-      whitelist.index word
+      whitelist.include? word
     end
   end
 
   def initialize(whitelist = nil)
     time = Time.now
     puts "Init rules"
-    self.return_white=false
+    @return_white=false
     confdir = File.expand_path(File.dirname(__FILE__) + "/conf")
     yaml = YAML.load_file("#{confdir}/rules.yaml")
-    self.translations = Hash[yaml.map do |key, rule|
+    @translations = Hash[yaml.map do |key, rule|
       key = key.to_s
       rule = rule.concat([{"symbol" => key, "weight" => 3}]).map do |item|
         {:symbol => item['symbol'], :weight => item['weight'], :length => 1, :char => key}
       end
       [key, rule]
     end]
-    self.partials = Hash[yaml.select do |key, _|
+    @partials = Hash[yaml.select do |key, _|
       key.to_s.length > 1
     end.map do |key, rule|
       key = key.to_s
@@ -203,12 +223,14 @@ class BadWords
       end
       [key, rule]
     end]
+
     puts "Init library"
     library_data = YAML.load_file("#{confdir}/library.yaml")
-    self.library = PrefixTree.new library_data
+    @library = PrefixTree.new library_data
     puts "Init whitelist"
-    self.whitelist = whitelist || YAML.load_file("#{confdir}/whitelist.yaml")
-    puts "Time: #{Time.now - time}"
+    @whitelist = whitelist || YAML.load_file("#{confdir}/whitelist.yaml")
+    @whitelist = Set.new @whitelist
+    puts "Time for init: #{Time.now - time}"
   end
 end
 
