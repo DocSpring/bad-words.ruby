@@ -2,18 +2,15 @@ require "yaml"
 require "set"
 require "bad_words/state"
 require "bad_words/prefix_tree"
+require "bad_words/rule"
 require "bad_words/version"
 
 class BadWords
-  attr_reader :translations,
-              :partials,
+  attr_reader :rule_sets,
+              :string_sets,
               :library,
               :whitelist,
               :return_white
-
-  def deep
-    5
-  end
 
   def get_word(text, index, skip)
     word_begin = text.rindex(' ', index) || -1
@@ -121,11 +118,10 @@ class BadWords
   end
 
   def append_path(symbols, state)
-
     symbols.map do |sym|
-      new_state = state.append sym
-    end.reject do |state|
-      state.failure?
+      state.append sym
+    end.reject do |new_state|
+      new_state.failure?
     end
   end
 
@@ -133,66 +129,21 @@ class BadWords
     char = string[index]
     if char
       char = char.to_s
-      translations = get_translations(char) || []
-      partials = get_partials(char) || []
-      translations + (partials.map do |partial|
-        length = find_partial(partial, string[index..-1])
-        if length
-          get_translations(partial).map do |translation|
-            translation.merge :length => length
-          end
-        end
-      end.reject(&:nil?).inject([]) do |sum, tr|
-        sum + tr
-      end)
+      get_rules(char, string[index..-1]) || []
     end
   end
 
-  def find_partial(partial, string)
-    index = 0
-    partial[1..-1].split(//).all? do |part|
-      search_in = string[index..deep]
-      new_index = find_partial_symbol(part, search_in)
-      unless new_index
-        return nil
-      end
-      index += new_index
+  def get_rules(char, string)
+    char_rules = rule_sets[char] || [Rule.self(char)]
+    if char_rules.none? {|rule| rule.symbol == ''}
+      set << Rule.empty(char)
     end
-    index+1
-  end
 
-  def find_partial_symbol(symbol, chars)
-    chars.split(//).each_with_index do |char, index|
-      translations = get_translations(char)
-      translations.each do |translation|
-        if translation[:symbol] == symbol
-          return index
-        end
-      end
-    end
-    nil
-  end
+    string_rules = string_sets.select do |k,_|
+      k.start_with?(char) and string.start_with?(k)
+    end.values.flatten
 
-  def get_translations(char)
-    tr = (translations[char] || (char.length == 1 ? [{:symbol => char, :length => 1, :weight => 3, :char => char}] : []))
-    if tr.none? { |item| item[:symbol] == '' }
-      tr << {:symbol => '', :length => 1, :weight => 0.2, :char => char}
-    end
-    tr.clone
-  end
-
-  def get_partials(char)
-    partials.select do |key, _|
-      key.start_with? char
-    end.map do |key, _|
-      key
-    end
-  end
-
-  def collapsable?(symbol)
-    get_translations(symbol[:key]).any? do |tr|
-      tr[:key].empty?
-    end
+    char_rules.concat(string_rules)
   end
 
   def check_whitelist(words)
@@ -207,22 +158,27 @@ class BadWords
     @return_white=false
     confdir = File.expand_path(File.dirname(__FILE__) + "/conf")
     yaml = YAML.load_file("#{confdir}/rules.yaml")
-    @translations = Hash[yaml.map do |key, rule|
+    @rule_sets = yaml.select do |key, _|
+      key.to_s.length == 1
+    end.hmap do |key, rules|
       key = key.to_s
-      rule = rule.concat([{"symbol" => key, "weight" => 3}]).map do |item|
-        {:symbol => item['symbol'], :weight => item['weight'], :length => 1, :char => key}
+      rules = rules.map do |item|
+        Rule.new(key, item['symbol'], item['weight'])
       end
-      [key, rule]
-    end]
-    @partials = Hash[yaml.select do |key, _|
+      # Self reference rule
+      rules << Rule.new(key, key, 3)
+      [key, rules]
+    end
+
+    @string_sets = yaml.select do |key, _|
       key.to_s.length > 1
-    end.map do |key, rule|
+    end.hmap do |key, rules|
       key = key.to_s
-      rule = rule.map do |item|
-        {:symbol => item['symbol'], :weight => item['weight'], :length => 1, :char => key}
+      rules = rules.map do |item|
+        Rule.new(key, item['symbol'], item['weight'])
       end
-      [key, rule]
-    end]
+      [key, rules]
+    end
 
     puts "Init library"
     library_data = YAML.load_file("#{confdir}/library.yaml")
@@ -232,5 +188,17 @@ class BadWords
     @whitelist = Set.new @whitelist
     puts "Time for init: #{Time.now - time}"
   end
+end
+
+class Hash
+  def hmap
+    result = {}
+    self.each do |k, v|
+      k, v = yield k, v
+      result[k] = v
+    end
+    result
+  end
+
 end
 

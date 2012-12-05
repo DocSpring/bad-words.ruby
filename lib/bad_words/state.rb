@@ -8,16 +8,16 @@ class State
     @length = 0
     @weight = 1
 
-    path.each do |item|
+    path.each do |rule|
      # puts item.inspect
-      @text += item[:symbol]
-      @length += (item[:length] || 1)
-      @weight *= (item[:weight] || (item[:symbol] == '' ? 0.3 : 1))
+      @text += rule.symbol
+      @length += rule.length
+      @weight *= rule.weight
     end
   end
 
-  def append(item)
-    State.new @path + [item], State.get_library(item ? item[:symbol] : '', @library)
+  def append(rule)
+    State.new @path + [rule], State.get_library(rule ? rule.symbol : '', @library)
   end
 
   def failure?

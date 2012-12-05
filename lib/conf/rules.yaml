@@ -1,14 +1,9 @@
 1:
   -
     symbol: f
-    weight: 2
-  -
-    symbol: f
-    weight: 3
 ph:
   -
     symbol: f
-    weight: 2
   -
     symbol: h
     weight: 1
@@ -24,12 +19,10 @@ u:
 "|_|":
   -
     symbol: u
-    weight: 2
 
 v:
   -
     symbol: u
-    weight: 2
 
 ".":
   -
@@ -42,4 +35,3 @@ v:
 "#":
   -
     symbol: "s"
-    weight: 2

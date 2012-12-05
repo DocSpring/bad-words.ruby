@@ -14,4 +14,5 @@ Gem::Specification.new do |gem|
   gem.name          = "bad_words"
   gem.require_paths = ["lib"]
   gem.version       = BadWords::VERSION
+  gem.add_development_dependency('rspec')
 end
