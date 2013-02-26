@@ -1,10 +1,10 @@
 $LOAD_PATH << "#{File.expand_path(File.dirname(__FILE__))}/../lib"
 
-require 'bad_words'
+require 'bad_word_detector'
 require "yaml"
 require "test/unit"
 
-class TestBadWords < Test::Unit::TestCase
+class TestBadWordDetector < Test::Unit::TestCase
   def finder 
     Finder::finder
   end
@@ -67,6 +67,6 @@ end
 
 class Finder
   def self.finder
-    @finder ||= BadWords.new YAML.load_file(File.dirname(__FILE__)+"/rules.yaml")
+    @finder ||= BadWordDetector.new YAML.load_file(File.dirname(__FILE__)+"/rules.yaml")
   end
 end

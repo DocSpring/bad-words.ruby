@@ -1,4 +1,4 @@
-# BadWords
+# BadWordDetector
 
 Swear word detector
 
@@ -6,7 +6,7 @@ Swear word detector
 
 Add this line to your application's Gemfile:
 
-    gem 'bad_words'
+    gem 'bad_word_detector'
 
 And then execute:
 
@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install bad_words
+    $ gem install bad_word_detector
 
 ## Usage
 
@@ -23,7 +23,7 @@ Detects `#uck` , `F|_|__C_K` and other variations of hidden swear words in text.
 Usage:
 
 ```ruby
-finder = BadWords.new
+finder = BadWordDetector.new
 finder.find("What the #uck")
 ```
 
@@ -44,7 +44,7 @@ Whitelist of english words in conf/whitelist.yaml
 You can also set own rules:
 
 ```ruby
-finder = BadWords.new rules, library, whitelist
+finder = BadWordDetector.new rules, library, whitelist
 ```
 
 ## Contributing

@@ -1,13 +1,13 @@
 require "yaml"
 require "set"
-require "bad_words/state"
-require "bad_words/prefix_tree"
-require "bad_words/rule"
-require "bad_words/version"
-require "bad_words/whitelist"
-require "bad_words/bad_word"
+require "bad_word_detector/state"
+require "bad_word_detector/prefix_tree"
+require "bad_word_detector/rule"
+require "bad_word_detector/version"
+require "bad_word_detector/whitelist"
+require "bad_word_detector/bad_word"
 
-class BadWords
+class BadWordDetector
 
   # Create new badword checker
   # 

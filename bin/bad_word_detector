@@ -2,12 +2,12 @@
 
 $LOAD_PATH << "#{File.expand_path(File.dirname(__FILE__))}/../lib"
 
-require 'bad_words'
+require 'bad_word_detector'
 
 string = ARGV[0]
 
 if string
-    puts BadWords.new().find(ARGV[0])
+    puts BadWordDetector.new().find(ARGV[0])
 else    
     puts 'Specify input string'
 end

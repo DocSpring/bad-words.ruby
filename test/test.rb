@@ -1,8 +1,8 @@
 $LOAD_PATH << "#{File.expand_path(File.dirname(__FILE__))}/../lib"
 
-require 'bad_words'
+require 'bad_word_detector'
 
-finder = BadWords.new
+finder = BadWordDetector.new
 
 #string = 'Using faster code in your Ruby application is always ideal. To discover which is faster, benchmarking is necessary step. It measures the time it takes to execute code and compares it to other a##hole code that accomplishes the same task'
 string = "tuck"

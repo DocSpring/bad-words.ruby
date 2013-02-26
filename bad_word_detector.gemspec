@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/bad_words/version', __FILE__)
+require File.expand_path('../lib/bad_word_detector/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Fedotov Daniil"]
@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
     Detects #uck F|_|__C_K and other variations of hidden swear words in text.
     Usage:
     ```
-        finder = BadWords.new
+        finder = BadWordDetector.new
         finder.find("What the #uck")
         it will return BadWord object
     ```
@@ -18,16 +18,16 @@ Gem::Specification.new do |gem|
     List of swear words is located in conf/library.yaml
     Whitelist of english words in conf/whitelist.yaml
     You can also set own rules:
-        finder = BadWords.new rules, library, whitelist
+        finder = BadWordDetector.new rules, library, whitelist
   }
   gem.homepage      = "https://github.com/hairyhum/bad-words.ruby"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "bad_words"
+  gem.name          = "bad_word_detector"
   gem.require_paths = ["lib"]
-  gem.version       = BadWords::VERSION
+  gem.version       = BadWordDetector::VERSION
   gem.add_development_dependency('yard')
   gem.add_development_dependency('redcarpet')
 end
