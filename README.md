@@ -2,7 +2,7 @@
 
 Swear word detector
 
-**Ruleset is not full. If you want to use it in your project, please edit `lib/config/rules.yaml` or use your own ruleset!**
+**Ruleset is not complete. If you want to use it in your project, please edit `lib/config/rules.yaml` or use your own ruleset!**
 
 ## Installation
 
