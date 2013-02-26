@@ -2,6 +2,8 @@
 
 Swear word detector
 
+**Ruleset is not full. If you want to use it in your project, please edit `lib/config/rules.yaml` or use your own ruleset!**
+
 ## Installation
 
 Add this line to your application's Gemfile:
