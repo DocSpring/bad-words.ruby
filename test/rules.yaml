@@ -1,6 +1,9 @@
 1:
   -
     symbol: f
+t:
+  - 
+    symbol: f
 "!":
   - 
     symbol: i
@@ -29,9 +32,6 @@ u:
   -
     symbol: v
     weight: 1
-t:
-  - 
-    symbol: f
 
 "|_|":
   -
@@ -47,6 +47,10 @@ v:
     weight: 1
 " ":
   -
+    symbol: ""
+    weight: 1
+"_":
+  - 
     symbol: ""
     weight: 1
 "#":

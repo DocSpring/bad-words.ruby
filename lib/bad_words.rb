@@ -4,56 +4,92 @@ require "bad_words/state"
 require "bad_words/prefix_tree"
 require "bad_words/rule"
 require "bad_words/version"
+require "bad_words/whitelist"
+require "bad_words/bad_word"
 
 class BadWords
-  attr_reader :rule_sets,
-              :string_sets,
-              :library,
-              :whitelist,
-              :return_white
 
-  def get_word(text, index, skip)
-    word_begin = text.rindex(' ', index) || -1
-    word_end = text.index(' ', (index + skip)) || text.length
-    text[word_begin+1..word_end-1].gsub(/[^0-9a-z ]/i, '')
-  end
+  # Create new badword checker
+  # 
+  # @param rules [Hash<String,Array<Hash<String, any>>>] Hash where values are arrays 
+  #   of Hash<['symbol', 'weight'], any> where weight is optional
+  # 
+  # @param library [Array<String>] Array of bad words to find
+  # 
+  # @param whitelist [Array<String>] Array of words that is acceptable. Used in false-positive check
+  # 
+  def initialize(rules = nil, library = nil,  whitelist = nil)
+    confdir = File.expand_path(File.dirname(__FILE__) + "/conf")
+    rules ||= YAML.load_file("#{confdir}/rules.yaml")
+    library ||= YAML.load_file("#{confdir}/library.yaml")
 
-  def find(string)
-    time = Time.now
-    string = string.downcase
-
-    length = string.length
-    thread_count = 4
-    i = 0
-    #trying to add multithreading. Left for the better times
-    while i < length
-      strings = Hash[(0..thread_count).map { |j|
-        [i+j, string[i+j..-1]]
-      }]
-      found = strings.map do |index, input|
-        found = process(input, library)
-        if found
-          text, length = found
-          word = get_word(string, index, length)
-          if check_whitelist(word)
-            puts "Found good words for #{word}"
-            if return_white
-              {:text => input[0..length], :word => text, :index => index, :white => word, :time => Time.now - time}
-            end
-          else
-            {:text => input[0..length], :word => text, :index => index, :time => Time.now - time}
-          end
-        end
-      end.reject do |res|
-        res.nil? or !!res[:white]
+    @rule_sets = rules.select do |key, _|
+      key.to_s.length == 1
+    end.hmap do |key, rule|
+      key = key.to_s
+      rule = rule.map do |item|
+        Rule.new(key, item['symbol'], item['weight'])
       end
-      i += thread_count
-      if found.any?
-        return found[0]
-      end
+      rule << Rule.new(key, key, 3)
+      [key, rule]
     end
-    nil
+
+    @string_sets = rules.select do |key, _|
+      key.to_s.length > 1
+    end.hmap do |key, rule|
+      key = key.to_s
+      rule = rule.map do |item|
+        Rule.new(key, item['symbol'], item['weight'])
+      end
+      [key, rule]
+    end
+
+    @library = PrefixTree.new library
+    @whitelist = Whitelist.new whitelist || YAML.load_file("#{confdir}/whitelist.yaml")
   end
+
+  #
+  # Searches string for some word in library
+  # 
+  # @param text [String] String to search
+  # 
+  # @param return_white [Boolean] Flag to indicate if search should return whitelist word
+  # 
+  # @return [BadWord, nil] BadWord object, containing information about found word and it's position in text
+  # 
+  def find(text, return_white = false)
+    downcased = text.downcase
+    length = text.length
+    index = 0
+    while index < length
+      found = find_part(downcased, index)
+      if found 
+        word = BadWord.new(
+          found[:word], 
+          text, 
+          index, 
+          found[:length], 
+          @whitelist)
+        if not word.white? or return_white
+          return word
+        end
+      end
+      index += 1
+    end
+  end
+
+private
+  def find_part(text, index)
+    input = text[index..-1]
+    found = unless input.start_with? ' '
+      process(input, @library)
+    end
+    if found
+      word, length = found
+      {:length => length, :word => word}
+    end
+  end
+
 
   def process(string, library)
     plain = library[string]
@@ -86,6 +122,9 @@ class BadWords
   def push_states(queue, states)
     states.each do |state|
       weight = state.weight
+      if queue.any? { |q_state| q_state == state }
+        next
+      end
       unless weight < 0.3
         if queue.empty? || weight < queue.last.weight
           queue << state
@@ -134,60 +173,18 @@ class BadWords
   end
 
   def get_rules(char, string)
-    char_rules = rule_sets[char] || [Rule.self(char)]
-    if char_rules.none? {|rule| rule.symbol == ''}
-      set << Rule.empty(char)
+    char_rules = @rule_sets[char] || [Rule.self(char)]
+    if char_rules.none? { |rule| rule.symbol == '' }
+      char_rules << Rule.empty(char)
     end
 
-    string_rules = string_sets.select do |k,_|
+    string_rules = @string_sets.select do |k, _|
       k.start_with?(char) and string.start_with?(k)
     end.values.flatten
 
     char_rules.concat(string_rules)
   end
 
-  def check_whitelist(words)
-    words.split(' ').all? do |word|
-      whitelist.include? word
-    end
-  end
-
-  def initialize(whitelist = nil)
-    time = Time.now
-    puts "Init rules"
-    @return_white=false
-    confdir = File.expand_path(File.dirname(__FILE__) + "/conf")
-    yaml = YAML.load_file("#{confdir}/rules.yaml")
-    @rule_sets = yaml.select do |key, _|
-      key.to_s.length == 1
-    end.hmap do |key, rules|
-      key = key.to_s
-      rules = rules.map do |item|
-        Rule.new(key, item['symbol'], item['weight'])
-      end
-      # Self reference rule
-      rules << Rule.new(key, key, 3)
-      [key, rules]
-    end
-
-    @string_sets = yaml.select do |key, _|
-      key.to_s.length > 1
-    end.hmap do |key, rules|
-      key = key.to_s
-      rules = rules.map do |item|
-        Rule.new(key, item['symbol'], item['weight'])
-      end
-      [key, rules]
-    end
-
-    puts "Init library"
-    library_data = YAML.load_file("#{confdir}/library.yaml")
-    @library = PrefixTree.new library_data
-    puts "Init whitelist"
-    @whitelist = whitelist || YAML.load_file("#{confdir}/whitelist.yaml")
-    @whitelist = Set.new @whitelist
-    puts "Time for init: #{Time.now - time}"
-  end
 end
 
 class Hash
@@ -201,4 +198,3 @@ class Hash
   end
 
 end
-

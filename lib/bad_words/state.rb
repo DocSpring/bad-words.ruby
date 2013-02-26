@@ -32,7 +32,7 @@ class State
     self.text == sec.text && self.length == sec.length && self.weight == sec.weight && self.library == sec.library
   end
 
-  class <<self
+  class << self
     def get_library(symbol, library)
       symbol = symbol || ""
       library[symbol]
