@@ -8,9 +8,11 @@ Gem::Specification.new do |gem|
   gem.description       = %q{
     Detects #uck F|_|__C_K and other variations of hidden swear words in text.
     Usage:
+    ```
         finder = BadWords.new
         finder.find("What the #uck")
         it will return BadWord object
+    ```
     Transformation rules is defined in form: {"#" => {"symbol"=>"f", "weight" => 2}} (where weight is optional)
     in file conf/rules.yaml 
     List of swear words is located in conf/library.yaml
@@ -18,7 +20,7 @@ Gem::Specification.new do |gem|
     You can also set own rules:
         finder = BadWords.new rules, library, whitelist
   }
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/hairyhum/bad-words.ruby"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

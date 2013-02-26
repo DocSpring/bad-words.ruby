@@ -1,5 +1,5 @@
 class BadWord
-  attr_reader :text, :word, :index, :source
+  attr_reader :text, :word, :index, :source, :white_words
 
   #
   # Create new BadWord
@@ -13,7 +13,6 @@ class BadWord
     @index = index
     @length = length
     @word = word
-    @white_words = white_words
     @source = source
     word_end = @index+@length-1
     space_location = @source.index(' ', word_end) || 0

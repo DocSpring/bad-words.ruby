@@ -18,7 +18,7 @@ class Whitelist
   end
 
   def check_bad_word(word)
-    self.check_substring(word.source, word.index, word.length)
+    self.check_substring(word.source, word.index, word.word.length)
   end
 
 end

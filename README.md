@@ -1,6 +1,6 @@
 # BadWords
 
-TODO: Write a gem description
+Swear word detector
 
 ## Installation
 
@@ -18,7 +18,34 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Detects `#uck` , `F|_|__C_K` and other variations of hidden swear words in text.
+
+Usage:
+
+```ruby
+finder = BadWords.new
+finder.find("What the #uck")
+```
+
+it will return BadWord object
+
+Transformation rules is defined in form: 
+
+```ruby
+{"#" => {"symbol"=>"f", "weight" => 2}} # weight is optional
+```
+
+Or in file conf/rules.yaml 
+
+List of swear words is located in conf/library.yaml
+
+Whitelist of english words in conf/whitelist.yaml
+
+You can also set own rules:
+
+```ruby
+finder = BadWords.new rules, library, whitelist
+```
 
 ## Contributing
 
