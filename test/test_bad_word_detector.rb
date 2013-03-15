@@ -67,6 +67,6 @@ end
 
 class Finder
   def self.finder
-    @finder ||= BadWordDetector.new YAML.load_file(File.dirname(__FILE__)+"/rules.yaml")
+    @finder ||= BadWordDetector.new File.dirname(__FILE__)+"/rules.yaml"
   end
 end

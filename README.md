@@ -49,6 +49,12 @@ You can also set own rules:
 finder = BadWordDetector.new rules, library, whitelist
 ```
 
+Or you can use string filenames for YAML files of same format:
+
+```ruby
+finder = BadWordDetector.new 'my_rules.yaml', 'my_library.yaml', 'my_whitelist.yaml'
+```
+
 ## Contributing
 
 1. Fork it

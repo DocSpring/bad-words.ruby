@@ -20,8 +20,30 @@ class BadWordDetector
   # 
   def initialize(rules = nil, library = nil,  whitelist = nil)
     confdir = File.expand_path(File.dirname(__FILE__) + "/conf")
-    rules ||= YAML.load_file("#{confdir}/rules.yaml")
-    library ||= YAML.load_file("#{confdir}/library.yaml")
+    rules_file = if rules.is_a? String 
+      rules 
+    else 
+      "#{confdir}/rules.yaml" 
+    end
+    library_file = if library.is_a? String 
+      library 
+    else 
+      "#{confdir}/library.yaml" 
+    end
+    whitelist_file = if whitelist.is_a? String 
+      whitelist 
+    else 
+      "#{confdir}/whitelist.yaml" 
+    end
+    unless rules.is_a? Hash
+      rules = YAML.load_file(rules_file)  
+    end
+    unless library.is_a? Array
+      library = YAML.load_file(library_file)
+    end
+    unless whitelist.is_a? Array
+      whitelist = YAML.load_file(whitelist_file)
+    end
 
     @rule_sets = rules.select do |key, _|
       key.to_s.length == 1
@@ -43,9 +65,8 @@ class BadWordDetector
       end
       [key, rule]
     end
-
     @library = PrefixTree.new library
-    @whitelist = Whitelist.new whitelist || YAML.load_file("#{confdir}/whitelist.yaml")
+    @whitelist = Whitelist.new whitelist
     true
   end
 
