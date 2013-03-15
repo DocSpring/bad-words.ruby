@@ -21,6 +21,10 @@ class Whitelist
     self.check_substring(word.source, word.index, word.word.length)
   end
 
+  def inspect
+    "#<#{self.class.name}:#{self.object_id}>"
+  end
+
 end
 
 

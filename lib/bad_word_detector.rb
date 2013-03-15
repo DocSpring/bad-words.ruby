@@ -67,6 +67,11 @@ class BadWordDetector
     end
     @library = PrefixTree.new library
     @whitelist = Whitelist.new whitelist
+    @library.freeze
+    @whitelist.freeze
+    @rule_sets.freeze
+    @string_sets.freeze
+    self.freeze
     true
   end
 
@@ -98,6 +103,9 @@ class BadWordDetector
       end
       index += 1
     end
+  end
+  def inspect
+    "#<#{self.class.name}:#{self.object_id}>"
   end
 
 private

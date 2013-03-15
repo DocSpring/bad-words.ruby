@@ -1,4 +1,8 @@
 class PrefixTree
+  def inspect
+    "#<#{self.class.name}:#{self.object_id}>"
+  end
+  
   def initialize(items = [], hash_tree = {})
     @hash_tree = hash_tree.clone
     unless items.empty?
