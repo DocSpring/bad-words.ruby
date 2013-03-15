@@ -46,6 +46,7 @@ class BadWordDetector
 
     @library = PrefixTree.new library
     @whitelist = Whitelist.new whitelist || YAML.load_file("#{confdir}/whitelist.yaml")
+    true
   end
 
   #
