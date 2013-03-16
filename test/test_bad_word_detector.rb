@@ -58,10 +58,26 @@ class TestBadWordDetector < Test::Unit::TestCase
     assert_equal true, word.white?
   end
   def test_false_positive_in_text
-    word = finder.find("Thing as is!", true)
+    word = finder.find("jackass", true)
     assert_not_nil word
     assert_equal true, word.white?
     assert_equal "ass", word.word
+  end
+  def test_repeats
+    word = finder.find("fuuuuuuuck")
+    assert_not_nil word
+    assert_equal "fuuuuuuuck", word.text 
+    assert_equal "fuck", word.word
+    assert_equal "fuuuuuuuck", word.source
+    assert_equal 0, word.index 
+  end
+  def test_repeats_replaces
+    word = finder.find("fuuu|_|uuuck")
+    assert_not_nil word
+    assert_equal "fuuu|_|uuuck", word.text 
+    assert_equal "fuck", word.word
+    assert_equal "fuuu|_|uuuck", word.source
+    assert_equal 0, word.index 
   end
 end
 

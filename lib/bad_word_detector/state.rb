@@ -13,16 +13,17 @@ class State
       rule = path[index]
       @text += rule.symbol
       @length += rule.length
-      weight_multiplier = if index != 0 and path[index - 1].symbol == rule.symbol
-          1
-      else
-        rule.weight
-      end
-      @weight *= weight_multitplier
+      @weight *= rule.weight
     end
   end
 
   def append(rule)
+    last_char_index = @path.rindex {|r| r.symbol != '' }
+    rule = if last_char_index and @path[last_char_index].symbol == rule.symbol and rule.symbol != ''
+      Rule.new rule.char, '', 1
+    else
+      rule
+    end
     State.new @path + [rule], State.get_library(rule ? rule.symbol : '', @library)
   end
 
