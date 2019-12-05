@@ -1,8 +1,8 @@
 class State
-  attr_reader :library, :text, :size, :weight
+  getter :library, :text, :size, :weight
 
-  def initialize(path, lib)
-    @library = lib
+  def initialize(path, library)
+    @library = library
     @path = path
     @text = ""
     @length = 0
@@ -39,10 +39,10 @@ class State
     self.text == sec.text && self.size == sec.size && self.weight == sec.weight && self.library == sec.library
   end
 
-  class << self
-    def get_library(symbol, library)
-      symbol = symbol || ""
-      library[symbol]
-    end
+  # class << self
+  def self.get_library(symbol, library)
+    symbol = symbol || ""
+    library[symbol]
   end
+  # end
 end

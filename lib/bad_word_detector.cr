@@ -8,7 +8,9 @@ require "bad_word_detector/whitelist"
 require "bad_word_detector/bad_word"
 
 class BadWordDetector
-
+  @rule_sets : Hash((Array(Rule) | String), (Array(Rule) | String))
+  @string_sets : Hash((Array(Rule) | String), (Array(Rule) | String))
+  
   # Create new badword checker
   #
   # @param rules [Hash<String,Array<Hash<String, any>>>] Hash where values are arrays
@@ -36,13 +38,16 @@ class BadWordDetector
                        "#{confdir}/whitelist.yaml"
                      end
     unless rules.is_a? Hash
-      rules = YAML.load_file(rules_file)
+      rules_any = YAML.parse(File.read(rules_file))
+      rules = rules_any.as(Hash(String, Array(Hash(String, String | Int32))))
     end
     unless library.is_a? Array
-      library = YAML.load_file(library_file)
+      library_any = YAML.parse(File.read(library_file))
+      library = library_any.as(Array(String))
     end
     unless whitelist.is_a? Array
-      whitelist = YAML.load_file(whitelist_file)
+      whitelist_any = YAML.parse(File.read(whitelist_file))
+      whitelist = whitelist_any.as(Array(String))
     end
 
     @rule_sets = rules.select do |key, _|
@@ -50,7 +55,7 @@ class BadWordDetector
     end.hmap do |key, rule|
       key = key.to_s
       rule = rule.map do |item|
-        Rule.new(key, item["symbol"], item["weight"])
+        Rule.new(key, item["symbol"].to_s, item["weight"].to_i)
       end
       rule << Rule.new(key, key, 3)
       [key, rule]
@@ -61,7 +66,7 @@ class BadWordDetector
     end.hmap do |key, rule|
       key = key.to_s
       rule = rule.map do |item|
-        Rule.new(key, item["symbol"], item["weight"])
+        Rule.new(key, item["symbol"].to_s, item["weight"].to_i)
       end
       [key, rule]
     end
@@ -110,7 +115,7 @@ class BadWordDetector
     "#<#{self.class.name}:#{self.object_id}>"
   end
 
-  private
+  # private
 
   def find_part(text, index)
     input = text[index..-1]
@@ -128,9 +133,9 @@ class BadWordDetector
     if plain && plain.value
       return plain.value, plain.value.size
     end
-    passed = []
-    bad_states = []
-    queue = [State.new([], library)]
+    passed = [] of State
+    bad_states = [] of State
+    queue = [State.new([] of Rule, library)]
     until queue.empty?
       state = queue.shift
       new_states = get_new_states state, string
@@ -200,7 +205,7 @@ class BadWordDetector
     char = string[index]
     if char
       char = char.to_s
-      get_rules(char, string[index..-1]) || []
+      get_rules(char, string[index..-1]) || [] of Rule
     end
   end
 
@@ -220,7 +225,7 @@ end
 
 class Hash
   def hmap
-    result = {}
+    result = {} of (Array(Rule) | String) => (Array(Rule) | String)
     self.each do |k, v|
       k, v = yield k, v
       result[k] = v

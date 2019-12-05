@@ -1,5 +1,5 @@
 class BadWord
-  attr_reader :text, :word, :index, :source, :white_words
+  getter :text, :word, :index, :source, :white_words
 
   #
   # Create new BadWord

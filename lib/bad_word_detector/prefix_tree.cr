@@ -1,9 +1,13 @@
+alias HashTree = Hash(Symbol | String | Char, Symbol | Char | String | Hash(Symbol | Char | String, HashTree))
+
 class PrefixTree
+  @hash_tree : HashTree
+
   def inspect
     "#<#{self.class.name}:#{self.object_id}>"
   end
 
-  def initialize(items = [], hash_tree = {})
+  def initialize(items = [] of String, hash_tree : HashTree = {} of Symbol | String | Char => Symbol | Char | String | Hash(Symbol | Char | String, HashTree))
     @hash_tree = hash_tree.clone
     unless items.empty?
       items.each do |i|
@@ -21,7 +25,7 @@ class PrefixTree
     new_hash = self.hash_tree
     parts.each do |part|
       unless new_hash[part]
-        new_hash[part] = {}
+        new_hash[part] = {} of Symbol | String | Char => Symbol | Char | String | Hash(Symbol | Char | String, HashTree)
       end
       new_hash = new_hash[part]
     end
@@ -38,7 +42,7 @@ class PrefixTree
       end
       new_hash = new_hash[part]
     end
-    PrefixTree.new [], new_hash
+    PrefixTree.new [] of String, new_hash
   end
 
   def value
@@ -50,7 +54,7 @@ class PrefixTree
   end
 
   def clone
-    PrefixTree.new [], self.hash_tree
+    PrefixTree.new([] of String, hash_tree)
   end
 
   def ==(sec)

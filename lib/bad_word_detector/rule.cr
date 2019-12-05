@@ -1,10 +1,12 @@
 class Rule
-  attr_reader :symbol,
-              :char,
-              :size,
-              :weight
+  getter :symbol,
+          :char,
+          :size,
+          :weight
+  
+  @length : Int32 
 
-  def initialize(char, symbol, weight = nil)
+  def initialize(char : String, symbol : String, weight : Int32 | Nil = nil)
     @char = char
     @symbol = symbol
     @weight = weight || 2
@@ -22,13 +24,13 @@ class Rule
     )
   end
 
-  class << self
-    def self(char)
-      self.new(char, char, 3)
-    end
-
-    def empty(char)
-      self.new(char, "", 0.2)
-    end
+  # class << self
+  def self.self(char)
+    self.new(char, char, 3)
   end
+
+  def self.empty(char)
+    self.new(char, "", 0.2)
+  end
+  # end
 end

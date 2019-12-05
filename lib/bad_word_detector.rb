@@ -226,5 +226,4 @@ class Hash
     end
     result
   end
-
 end
